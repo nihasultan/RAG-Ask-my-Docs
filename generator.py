@@ -7,7 +7,7 @@ generator = pipeline(
 )
 
 def generate_answer(query, docs):
-    context = "\n".join([d.page_content for d in docs])
+    context = "\n".join([d["text"] for d in docs])
 
     prompt = f"""
     Answer the question based on the context below.
