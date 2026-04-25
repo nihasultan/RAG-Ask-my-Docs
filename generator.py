@@ -7,15 +7,10 @@ generator = pipeline(
 
 def generate_answer(query, docs):
     context = "\n\n".join(
-        [d.get("text", "")[:500] for d in docs[:3]]
+        [d.get("text", "")[:300] for d in docs[:3]]  
     )
 
-    prompt = f"""
-You are an expert assistant.
-
-Answer ONLY using the context.
-
-Write 4–6 detailed bullet points.
+    prompt = f"""Answer the question using the context below. Write 4 to 6 detailed bullet points. Do not cut off mid-sentence.
 
 Context:
 {context}
@@ -23,23 +18,19 @@ Context:
 Question:
 {query}
 
-Answer:
-"""
+Answer:"""
 
     result = generator(
         prompt,
-        max_new_tokens=500,
-        do_sample=False
+        max_new_tokens=300,   
+        min_new_tokens=80,    
+        do_sample=False,
+        no_repeat_ngram_size=3, 
     )
 
-    text = result[0]["generated_text"]
+    text = result[0]["generated_text"].strip()
 
-    lines = text.split("\n")
+    lines = [line.strip().lstrip("-•* ").strip() for line in text.split("\n")]
+    cleaned = [f"- {line}" for line in lines if line]
 
-    cleaned = []
-    for line in lines:
-        line = line.strip("- ").strip()
-        if line:
-            cleaned.append(f"- {line}")
-
-    return "\n\n".join(cleaned)
+    return "\n\n".join(cleaned)  
