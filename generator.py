@@ -38,7 +38,7 @@ Answer:
         temperature=0.3,
         max_tokens=400
     )
-    return response.choices[0].message.content
+        return response.choices[0].message.content
 
     except Exception as e:
         return f"❌ GROQ ERROR: {repr(e)}"
