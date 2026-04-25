@@ -8,17 +8,21 @@ generator = pipeline(
 )
 
 def generate_answer(query, docs):
-    context = "\n".join([d.get("text", "") for d in docs])
+    context = "\n".join([d["text"] for d in docs])
 
     prompt = f"""
-    Context:
-    {context}
+Context:
+{context}
 
-    Question: {query}
+Question: {query}
 
-    Answer briefly and clearly.
-    """
+Give a short and clear answer using only the context.
+Do NOT repeat the question or the context.
+
+Answer:
+"""
 
     response = generator(prompt)[0]["generated_text"]
+    answer = response.split("Answer:")[-1].strip()
 
-    return response.strip()
+    return answer
