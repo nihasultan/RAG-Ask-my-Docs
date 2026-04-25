@@ -2,7 +2,7 @@ from transformers import pipeline
 
 generator = pipeline(
     "text2text-generation",
-    model="google/flan-t5-large",
+    model="google/flan-t5-base",
 )
 
 def generate_answer(query, docs):
@@ -10,7 +10,7 @@ def generate_answer(query, docs):
         [d.get("text", "")[:300] for d in docs[:3]]  
     )
 
-    prompt = f"""Answer the question using the context below. Write 4 to 6 detailed bullet points. Do not cut off mid-sentence.
+    prompt = f"""Answer the question using only the context below. Write a detailed answer. Do not cut off mid-sentence.
 
 Context:
 {context}
@@ -28,9 +28,6 @@ Answer:"""
         no_repeat_ngram_size=3, 
     )
 
-    text = result[0]["generated_text"].strip()
+    text = result[0]["generated_text"]
 
-    lines = [line.strip().lstrip("-•* ").strip() for line in text.split("\n")]
-    cleaned = [f"- {line}" for line in lines if line]
-
-    return "\n\n".join(cleaned)  
+    return text  
