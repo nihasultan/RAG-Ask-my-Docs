@@ -1,6 +1,6 @@
+from generator import generate_answer
 from ingestion import load_and_process_pdfs
 from retrieval import build_index, retrieve
-from generator import generate_answer
 
 chunks = None
 index = None

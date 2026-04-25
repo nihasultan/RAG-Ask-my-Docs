@@ -1,17 +1,23 @@
-from transformers import pipeline
+import os
+import requests
+import streamlit as st
 
-generator = pipeline(
-    "text2text-generation",  
-    model="flan-t5-large"
-)
+API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
+HEADERS = {
+    "Authorization": f"Bearer {st.secrets['HUGGINGFACE_API_KEY']}"
+}
+
+def query_hf(payload):
+    response = requests.post(API_URL, headers=HEADERS, json=payload)
+    return response.json()
 
 def generate_answer(query, docs):
-    context = "\n".join([d.get("text", "") for d in docs])
+    context = "\n\n".join([d.get("text", "") for d in docs])
 
     prompt = f"""
 Answer the question in detail using the context below.
 
-Write at least 5 bullet points.
+Give at least 5 bullet points.
 
 Context:
 {context}
@@ -19,13 +25,18 @@ Context:
 Question:
 {query}
 
-Detailed Answer:
+Answer:
 """
 
-    result = generator(
-    prompt,
-    max_length=800,
-    min_length=100  
-)
+    output = query_hf({
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 500,
+            "temperature": 0.3
+        }
+    })
 
-    return result[0]["generated_text"]
+    try:
+        return output[0]["generated_text"]
+    except:
+        return "Error generating answer. Try again."

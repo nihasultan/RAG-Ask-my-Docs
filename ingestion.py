@@ -1,46 +1,23 @@
-import os
-from functools import lru_cache
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-DATA_FOLDER = "data"
-
-def clean_text(text):
-    return text.replace("\n", " ").strip()
-
-def process_uploaded_file(uploaded_file):
-    os.makedirs(DATA_FOLDER, exist_ok=True)
-    file_path = os.path.join(DATA_FOLDER, uploaded_file.name)
-
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+from pypdf import PdfReader
 
 def load_and_process_pdfs():
-    documents = []
+    reader = PdfReader("uploaded.pdf")
+    chunks = []
 
-    for file in os.listdir(DATA_FOLDER):
-        if file.endswith(".pdf"):
-            loader = PyPDFLoader(os.path.join(DATA_FOLDER, file))
-            docs = loader.load()
+    for i, page in enumerate(reader.pages):
+        text = page.extract_text()
+        if text:
+            text = text.replace("\n", " ").strip()
 
-            for d in docs:
-                d.metadata["source"] = file
+            chunks.append({
+                "text": text,
+                "source": "uploaded.pdf",
+                "page": i + 1
+            })
 
-            documents.extend(docs)
+    return chunks
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
-    )
 
-    chunks = text_splitter.split_documents(documents)
-
-    processed_chunks = []
-    for chunk in chunks:
-        processed_chunks.append({
-            "text": clean_text(chunk.page_content),
-            "source": chunk.metadata["source"],
-            "page": chunk.metadata.get("page", 1) + 1
-        })
-
-    return processed_chunks
+def process_uploaded_file(uploaded_file):
+    with open("uploaded.pdf", "wb") as f:
+        f.write(uploaded_file.read())

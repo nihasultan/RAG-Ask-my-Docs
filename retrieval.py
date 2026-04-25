@@ -14,28 +14,17 @@ def build_index(chunks):
         show_progress_bar=False
     )
 
-    embeddings = np.array(embeddings).astype("float32")
-
     index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(embeddings)
+    index.add(embeddings.astype("float32"))
 
     return index, embeddings
 
-
-def retrieve(query, chunks, index, k=5):
+def retrieve(query, chunks, index, k=5):  
     query_embedding = model.encode(
         [query],
-        convert_to_numpy=True,
-        show_progress_bar=False
+        convert_to_numpy=True
     )
 
-    query_embedding = np.array(query_embedding).astype("float32")
+    distances, indices = index.search(query_embedding.astype("float32"), k)
 
-    distances, indices = index.search(query_embedding, k)
-
-    results = []
-    for idx in indices[0]:
-        if idx < len(chunks):   # safety check
-            results.append(chunks[idx])
-
-    return results
+    return [chunks[i] for i in indices[0]]
