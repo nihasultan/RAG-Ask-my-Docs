@@ -34,7 +34,7 @@ The pipeline consists of the following stages:
 # Tech Stack
 Language: Python
 Retrieval: FAISS, BM25
-LLM Integration: HuggingFace model, local:tinyllama
+LLM Integration: Groq API, local:tinyllama
 Frontend: Streamlit
 
 Setup Instructions
