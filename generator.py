@@ -1,40 +1,50 @@
 from transformers import pipeline
+import torch
 
 generator = pipeline(
-    "text2text-generation",
-    model="google/flan-t5-base",
+    "text-generation",          
+    model="TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    torch_dtype=torch.float16,  
+    device_map="auto",         
 )
 
 def generate_answer(query, docs):
-    \
     context = "\n\n".join(
-        [d.get("text", "")[:150] for d in docs[:3]] 
+        [d.get("text", "")[:200] for d in docs[:3]]
     )
 
-    prompt = f"""Write a fluent paragraph answering the question. Do not use bullet points or lists. Write complete sentences only.
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Answer questions using only the provided context. Write in complete sentences with bullet points. Do not repeat yourself."
+        },
+        {
+            "role": "user",
+            "content": f"Context:\n{context}\n\nQuestion: {query}"
+        }
+    ]
 
-Context:
-{context}
-
-Question:
-{query}
-
-Answer in one complete paragraph:"""
+    prompt = generator.tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True
+    )
 
     result = generator(
         prompt,
-        max_new_tokens=200,        
-        min_new_tokens=60,
+        max_new_tokens=200,
+        min_new_tokens=30,
         do_sample=False,
-        no_repeat_ngram_size=3,
-        early_stopping=False,      
+        repetition_penalty=1.3,
+        no_repeat_ngram_size=4,
     )
 
-    text = result[0]["generated_text"].strip()
+    full_text = result[0]["generated_text"]
+    answer = full_text[len(prompt):].strip()
 
-    if text and not text[-1] in ".!?":
-        last_period = max(text.rfind("."), text.rfind("!"), text.rfind("?"))
+    if answer and answer[-1] not in ".!?":
+        last_period = max(answer.rfind("."), answer.rfind("!"), answer.rfind("?"))
         if last_period != -1:
-            text = text[:last_period + 1]
+            answer = answer[:last_period + 1]
 
-    return text
+    return answer
