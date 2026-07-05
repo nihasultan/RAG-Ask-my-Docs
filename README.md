@@ -19,7 +19,7 @@ This system allows users to:
 # Key Features
 
 🔍 Semantic Search over document content
-⚡ Retrieval FAISS
+⚡ Retrieval using FAISS
 🎯 Cross-Encoder Reranking for improved relevance
 📄 Multi-document Querying
 💬 LLM-based Answer Generation with context grounding
